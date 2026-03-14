@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/pref_header_general">
+
+        <SwitchPreferenceCompat
+            app:key="floating_panel"
+            app:summary="@string/pref_floating_panel_summary"
+            app:title="@string/pref_floating_panel" />
+
+        <SwitchPreferenceCompat
+            app:key="windows_mode"
+            app:summary="@string/pref_windows_mode_summary"
+            app:title="@string/pref_windows_mode" />
+
+        <SwitchPreferenceCompat
+            app:key="api_bridge"
+            app:summary="@string/pref_api_bridge_summary"
+            app:title="@string/pref_api_bridge" />
+
+        <Preference
+            app:key="automation_rules"
+            app:title="Manage Automation Rules" />
+
+        <Preference
+            app:key="clear_all"
+            app:title="@string/pref_clear_all" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Support Development">
+        <Preference
+            app:key="kofi"
+            app:summary="Buy me a coffee — one-time or ongoing"
+            app:title="☕ Support on Ko-fi" />
+        <Preference
+            app:key="github_sponsors"
+            app:summary="Sponsor this project on GitHub"
+            app:title="⭐ GitHub Sponsors" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_all"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="@string/title_all" />
+    <item
+        android:id="@+id/nav_by_app"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:title="@string/title_by_app" />
+    <item
+        android:id="@+id/nav_history"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="@string/title_history" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/title_settings" />
+</menu>
