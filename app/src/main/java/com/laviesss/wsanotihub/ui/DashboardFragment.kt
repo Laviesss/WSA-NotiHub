@@ -44,8 +44,16 @@ class DashboardFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = NotificationAdapter(
-            onReply = { entity, text -> /* Implementation */ },
-            onOpen = { entity -> /* Implementation */ },
+            onReply = { entity, text ->
+                val sbn = com.laviesss.wsanotihub.service.NotiHubListenerService.getActiveSbn(entity.notificationKey)
+                if (sbn != null) {
+                    com.laviesss.wsanotihub.util.NotificationReplyHelper.sendReply(requireContext(), sbn, text)
+                }
+            },
+            onOpen = { entity ->
+                val sbn = com.laviesss.wsanotihub.service.NotiHubListenerService.getActiveSbn(entity.notificationKey)
+                sbn?.notification?.contentIntent?.send()
+            },
             onDismiss = { entity -> viewModel.dismissNotification(entity.id) }
         )
 

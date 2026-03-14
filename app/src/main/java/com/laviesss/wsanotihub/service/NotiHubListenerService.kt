@@ -29,6 +29,13 @@ class NotiHubListenerService : NotificationListenerService() {
         database = NotiHubDatabase.getDatabase(this)
     }
 
+    override fun onNotificationRemoved(sbn: StatusBarNotification) {
+        serviceScope.launch {
+            database.notificationDao().markAsDismissed(sbn.packageName, sbn.postTime)
+        }
+        activeNotificationsMap.remove(sbn.key)
+    }
+
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName == packageName) return
 
@@ -52,6 +59,7 @@ class NotiHubListenerService : NotificationListenerService() {
         } ?: emptyList()
 
         val entity = NotificationEntity(
+            notificationKey = sbn.key,
             appPackageName = sbn.packageName,
             appLabel = appLabel,
             title = title,
@@ -66,6 +74,8 @@ class NotiHubListenerService : NotificationListenerService() {
             database.notificationDao().insert(entity)
             applyAutomationRules(sbn, title, body)
         }
+
+        activeNotificationsMap[sbn.key] = sbn
     }
 
     private fun applyAutomationRules(sbn: StatusBarNotification, title: String, body: String) {
@@ -102,9 +112,9 @@ class NotiHubListenerService : NotificationListenerService() {
         }
     }
 
-    override fun onNotificationRemoved(sbn: StatusBarNotification) {
-        serviceScope.launch {
-            database.notificationDao().markAsDismissed(sbn.packageName, sbn.postTime)
-        }
+    companion object {
+        private val activeNotificationsMap = mutableMapOf<String, StatusBarNotification>()
+
+        fun getActiveSbn(key: String): StatusBarNotification? = activeNotificationsMap[key]
     }
 }

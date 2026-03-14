@@ -44,6 +44,7 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
 
     // Room
     val roomVersion = "2.6.1"
@@ -66,6 +67,9 @@ dependencies {
 
     // NanoHTTPD
     implementation("org.nanohttpd:nanohttpd:2.3.1")
+
+    // Google Play Billing
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
     // Gson (for action serialization and rules)
     implementation("com.google.code.gson:gson:2.10.1")

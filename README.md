@@ -32,7 +32,7 @@ To use WSA NotiHub effectively on WSA, you need to grant specific permissions ma
 ## Build Instructions
 
 - Minimum SDK: 26 (Android 8.0)
-- Target SDK: 34
+- Target SDK: 36
 - Build System: Gradle (Kotlin DSL)
 - Language: Kotlin
 
