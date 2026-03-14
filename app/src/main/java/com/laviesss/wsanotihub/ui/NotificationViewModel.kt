@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.laviesss.wsanotihub.data.NotiHubDatabase
 import com.laviesss.wsanotihub.data.NotificationEntity
+import com.laviesss.wsanotihub.model.NotificationGroup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -17,10 +18,11 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
-    private val _notifications = MutableStateFlow<List<NotificationEntity>>(emptyList())
-    val notifications: StateFlow<List<NotificationEntity>> = _notifications
-
     private val _sortOrder = MutableStateFlow("Newest")
+
+    private val _expansionStates = mutableMapOf<String, Boolean>()
+    private val _groupedNotifications = MutableStateFlow<List<NotificationGroup>>(emptyList())
+    val groupedNotifications: StateFlow<List<NotificationGroup>> = _groupedNotifications
 
     init {
         viewModelScope.launch {
@@ -32,15 +34,31 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
                     it.appLabel.contains(query, ignoreCase = true)
                 }
 
+                val groups = filtered.groupBy { it.appPackageName }.map { (pkg, notis) ->
+                    NotificationGroup(
+                        appPackageName = pkg,
+                        appLabel = notis.first().appLabel,
+                        notifications = notis.sortedByDescending { it.timestamp },
+                        isExpanded = if (query.isNotEmpty()) true else _expansionStates[pkg] ?: false
+                    )
+                }
+
                 when (sort) {
-                    "By App" -> filtered.sortedBy { it.appLabel }
-                    "By Priority" -> filtered.sortedByDescending { it.priority }
-                    else -> filtered.sortedByDescending { it.timestamp }
+                    "By App" -> groups.sortedBy { it.appLabel }
+                    "By Priority" -> groups.sortedByDescending { it.mostRecent.priority }
+                    else -> groups.sortedByDescending { it.mostRecent.timestamp }
                 }
             }.collectLatest {
-                _notifications.value = it
+                _groupedNotifications.value = it
             }
         }
+    }
+
+    fun toggleGroup(appPackageName: String) {
+        val current = _expansionStates[appPackageName] ?: false
+        _expansionStates[appPackageName] = !current
+        // Trigger a refresh of the flow
+        _searchQuery.value = _searchQuery.value
     }
 
     fun setSortOrder(order: String) {

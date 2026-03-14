@@ -17,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.laviesss.wsanotihub.R
 import com.laviesss.wsanotihub.data.NotiHubDatabase
 import com.laviesss.wsanotihub.databinding.LayoutFloatingPanelBinding
-import com.laviesss.wsanotihub.ui.NotificationAdapter
+import com.laviesss.wsanotihub.ui.GroupedNotificationAdapter
+import com.laviesss.wsanotihub.model.NotificationGroup
+import com.laviesss.wsanotihub.data.NotificationEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -102,13 +104,13 @@ class FloatingPanelService : Service() {
             }
         })
 
-        val adapter = NotificationAdapter({ _, _ -> }, { _ -> }, { _ -> })
+        val adapter = GroupedNotificationAdapter({ _: NotificationGroup -> }, { _: NotificationEntity, _: String -> }, { _: NotificationEntity -> }, { _: NotificationEntity -> })
         binding.floatingRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.floatingRecyclerView.adapter = adapter
 
         serviceScope.launch {
-            database.notificationDao().getAllNotifications().collectLatest {
-                adapter.submitList(it.take(5))
+            database.notificationDao().getAllNotifications().collectLatest { notis ->
+                adapter.submitList(notis.take(5))
             }
         }
     }

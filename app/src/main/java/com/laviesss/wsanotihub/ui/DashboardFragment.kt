@@ -10,9 +10,10 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.laviesss.wsanotihub.databinding.FragmentDashboardBinding
+import com.laviesss.wsanotihub.service.NotiHubListenerService
+import com.laviesss.wsanotihub.util.NotificationReplyHelper
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -21,7 +22,7 @@ class DashboardFragment : Fragment() {
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
     private val viewModel: NotificationViewModel by viewModels()
-    private lateinit var adapter: NotificationAdapter
+    private lateinit var adapter: GroupedNotificationAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
@@ -36,30 +37,36 @@ class DashboardFragment : Fragment() {
         setupSortSpinner()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.notifications.collectLatest {
-                adapter.submitList(it)
+            viewModel.groupedNotifications.collectLatest { groups ->
+                val displayList = mutableListOf<Any>()
+                groups.forEach { group ->
+                    displayList.add(group)
+                    if (group.isExpanded) {
+                        displayList.addAll(group.notifications)
+                    }
+                }
+                adapter.submitList(displayList)
+
+                binding.emptyState.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
             }
         }
     }
 
     private fun setupRecyclerView() {
-        adapter = NotificationAdapter(
+        adapter = GroupedNotificationAdapter(
+            onHeaderClick = { group -> viewModel.toggleGroup(group.appPackageName) },
             onReply = { entity, text ->
-                val sbn = com.laviesss.wsanotihub.service.NotiHubListenerService.getActiveSbn(entity.notificationKey)
+                val sbn = NotiHubListenerService.getActiveSbn(entity.notificationKey)
                 if (sbn != null) {
-                    com.laviesss.wsanotihub.util.NotificationReplyHelper.sendReply(requireContext(), sbn, text)
+                    NotificationReplyHelper.sendReply(requireContext(), sbn, text)
                 }
             },
             onOpen = { entity ->
-                val sbn = com.laviesss.wsanotihub.service.NotiHubListenerService.getActiveSbn(entity.notificationKey)
+                val sbn = NotiHubListenerService.getActiveSbn(entity.notificationKey)
                 sbn?.notification?.contentIntent?.send()
             },
             onDismiss = { entity -> viewModel.dismissNotification(entity.id) }
         )
-
-        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val windowsMode = prefs.getBoolean("windows_mode", false)
-        adapter.setWindowsFriendlyMode(windowsMode)
 
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = adapter
